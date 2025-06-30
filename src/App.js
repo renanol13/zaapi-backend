@@ -6,11 +6,15 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-app.get('/',(req, res) => {
-    res.json({msg: 'Bem-Vindo!'})
-})
+//All routes
+
+const Routes = require("./routes/Route.js");
+app.use("/", Routes);
 
 
 
+console.log(valores);
 
-module.exports = app
+
+
+module.exports = app;
