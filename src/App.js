@@ -13,7 +13,6 @@ app.use("/", Routes);
 
 
 
-console.log(valores);
 
 
 

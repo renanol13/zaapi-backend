@@ -1,26 +1,53 @@
 const userModel = require("../models/UserModel.js");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const setToken = (user) => {
+  const token = jwt.sign(
+    {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      userName: user.userName,
+    },
+    process.env.SECRET,
+    {expiresIn: '1h'}
+  );
+  return token;
+};
 
 const UserController = {
   login: async (req, res) => {
     try {
-      const { email, password } = req.body;
+      let { email, password } = req.body;
+      email = email?.toLowerCase().trim();
 
       if (!email || !password) {
         return res.status(422).json({ message: "Preencha os campos" });
       }
 
-      const isUser = await userModel.findOne({ email });
+      const user = await userModel.findOne({ email });
 
-      if (!isUser)
+      if (!user)
         return res.status(404).json({ message: "Usuário não encontrado" });
 
-      res.json({
+      //check password
+      if (!(await bcrypt.compare(password, user.password)))
+        return res.status(404).json({ message: "Email ou senha incorretos!" });
+
+      const token = setToken(user);
+      res.status(200).json({
         message: "Usuário logado com sucesso!",
-        userData: { email, password },
-        token: "nchjevhehsbasxwdbcuheu",
+        token: token,
+        userData: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          userName: user.userName,
+        },
       });
-      console.log(password);
+
+   
     } catch (error) {
       res.status(500).json({ message: "Erro interno!", Error: error.message });
     }
