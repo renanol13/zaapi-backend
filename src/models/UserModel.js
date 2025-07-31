@@ -32,7 +32,7 @@ const userSchema = mongoose.Schema(
       required: true,
       trim: true,
     },
-    biografy: {
+    biography: {
       type: String,
       required: true,
       trim: true,

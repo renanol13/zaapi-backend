@@ -1,6 +1,7 @@
 const userModel = require("../models/UserModel.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const validateStep = require("../validators/stepValidator.js");
 
 //Generation token
 const setToken = (user) => {
@@ -25,7 +26,7 @@ const verifyFieldsExist = (dataUser) => {
     "age",
     "city",
     "sex",
-    "biografy",
+    "biography",
     "password",
   ];
 
@@ -38,9 +39,9 @@ const verifyEmailExist = async (email) => {
   return await userModel.findOne({ email });
 };
 
-const verifyUserNameExist = async (userName) => {
-  return await userModel.findOne({ userName });
-};
+const verifyUserNameExist = async(userName) => {
+    return await userModel.findOne({ userName });
+}
 
 const UserController = {
   login: async (req, res) => {
@@ -52,12 +53,13 @@ const UserController = {
         return res.status(422).json({ message: "Preencha os campos" });
       }
 
-      const user = verifyEmailExist(email);
+      const user = await verifyEmailExist(email);
 
       if (!user)
         return res.status(404).json({ message: "Usuário não encontrado" });
 
       //check password
+
       if (!(await bcrypt.compare(password, user.password)))
         return res.status(404).json({ message: "Email ou senha incorretos!" });
 
@@ -73,6 +75,7 @@ const UserController = {
         },
       });
     } catch (error) {
+
       res.status(500).json({ message: "Erro interno!", Error: error.message });
     }
   },
@@ -80,6 +83,7 @@ const UserController = {
   register: async (req, res) => {
     try {
       const dataUser = req.body;
+
 
       dataUser.userName = dataUser.userName?.toLowerCase().trim();
       dataUser.email = dataUser.email?.toLowerCase().trim();
@@ -91,7 +95,7 @@ const UserController = {
 
       if (await verifyEmailExist(dataUser.email))
         return res.status(422).json({ message: "Email já cadastrado!" });
-
+    
       if (await verifyUserNameExist(dataUser.userName))
         return res
           .status(422)
@@ -102,13 +106,21 @@ const UserController = {
       const salt = await bcrypt.genSalt(10);
       dataUser.password = await bcrypt.hash(dataUser.password, salt);
 
-      // outhers validators
-
-      await userModel.create(dataUser);
-      res.status(202).json({
-        message: "Usuário cadastrado com sucesso! Volte á tela de login.",
+      getUser = await userModel.create(dataUser);
+      const token = setToken(dataUser);
+      res.status(200).json({
+        message: "Usuário logado com sucesso!",
+        token: token,
+        userData: {
+          _id: getUser._id,
+          name: getUser.name,
+          email: getUser.email,
+          userName: getUser.userName,
+        },
       });
     } catch (error) {
+      console.log(error);
+      
       res.status(500).json({ message: "Erro interno!", Error: error.message });
     }
   },
@@ -120,7 +132,7 @@ const UserController = {
 
       const currentStep = Number(req.params.step);
 
-      if (currentStep === 1) {
+      if (currentStep === 0) {
         dataUser.userName = dataUser.userName?.toLowerCase().trim();
         dataUser.email = dataUser.email?.toLowerCase().trim();
 
@@ -133,16 +145,19 @@ const UserController = {
             .json({ message: "Nome de usuário já cadastrado!" });
       }
 
+      let schema;
+      schema = validateStep(currentStep);
       const { error } = schema.validate(dataUser, { abortEarly: false });
       if (error) {
         const errors = {};
         error.details.forEach((err) => (errors[err.path] = err.message));
-        return res.status(422).json({ message: errors });
+        return res.status(422).json({ message: error.details[0].message });
       }
-      console.log(dataUser);
 
       res.status(200).json({ message: "Etapa válida" });
     } catch (error) {
+      console.log(error);
+
       res.status(500).json({ message: "Erro interno!", Error: error.message });
     }
   },
