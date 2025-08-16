@@ -6,7 +6,7 @@ const postController = {
       if (!author || !content)
         return res.status(422).json({ message: "Preencha os campos" });
 
-      res.status(200).json(author, content);
+        res.status(200).json({ author, content });
     } catch (error) {
       res.status(500).json({ message: "Erro interno!", Error: error.message });
     }
