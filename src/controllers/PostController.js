@@ -1,14 +1,26 @@
+const postModel = require("../models/PostModel");
+const userModel = require("../models/UserModel");
+
 const postController = {
-  createPost: (req, res) => {
+  createPost: async (req, res) => {
     try {
-      const { author, content } = req.body;
+      const { content } = req.body;
 
-      if (!author || !content)
+      if (!content)
         return res.status(422).json({ message: "Preencha os campos" });
+      
 
-        res.status(200).json({ author, content });
+      const post = await postModel.create({
+        author: req.userId,
+        content,
+      })
+        
+
+      res.status(200).json({ message: 'Post criado!', post});
     } catch (error) {
-      res.status(500).json({ message: "Erro interno!", Error: error.message });
+      console.log(error);
+      
+      res.status(500).json({ message: "Erro no servidor!", Error: error.message });
     }
   },
 };

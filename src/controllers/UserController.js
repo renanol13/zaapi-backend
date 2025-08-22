@@ -56,7 +56,7 @@ const UserController = {
       const user = await verifyEmailExist(email);
 
       if (!user)
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(404).json({ message: "Usuário não encontrado!" });
 
       //check password
 

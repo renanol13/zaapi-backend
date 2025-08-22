@@ -20,7 +20,6 @@ const checkToken = (req, res, next) => {
     res.status(401).json({ message: "Token invalido!" });
   }
 
-  next();
 };
 
 module.exports = checkToken;
