@@ -40,7 +40,7 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       required: true,
-      select: false,
+      // select: false,
       trim: true,
     },
   },
